@@ -13,6 +13,8 @@ public class CheckersApp extends Application {
     private Group tileGroup = new Group();
     private Group pieceGroup = new Group();
 
+    Tile[][] board = new Tile[HEIGHT][WIDTH];
+
     private Parent createContent() {
         Pane root = new Pane();
         root.setPrefSize(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE);
@@ -20,18 +22,18 @@ public class CheckersApp extends Application {
 
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) {
-                Tile tile = new Tile(((x+y) % 2 == 0), x, y);
-                tileGroup.getChildren().add(tile);
+                board[x][y] = new Tile(((x+y) % 2 == 0), x, y);
+                tileGroup.getChildren().add(board[x][y]);
 
                 Piece piece = null;
-                if (y <= 2 && (x + y) % 2 != 0) {
+                if ((y == 0 || y == 7) && (x > 0 && x < 7)) {
                     piece = new Piece(PieceType.RED, x, y);
                 }
-                if (y >= 5 && (x + y) % 2 != 0) {
+                if ((x == 0 || x == 7) && (y > 0 && y < 7)) {
                     piece = new Piece(PieceType.WHITE, x, y);
                 }
                 if (piece != null) {
-                    tile.setPiece(piece);
+                    board[x][y].setPiece(piece);
                     pieceGroup.getChildren().add(piece);
                 }
             }
@@ -43,7 +45,7 @@ public class CheckersApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         Scene scene = new Scene(createContent());
-        primaryStage.setTitle("Checkers");
+        primaryStage.setTitle("Lines of Action");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
