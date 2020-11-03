@@ -107,6 +107,8 @@ public class CheckersApp extends Application {
 
     private ArrayList<TilePosition> availableMoves(int x, int y) {
         ArrayList<TilePosition> availableTiles = new ArrayList<>();
+        PieceType ownType = board[x][y].getPiece().getType();
+        PieceType oppType = ownType == PieceType.RED ? PieceType.WHITE : PieceType.RED;
 
         /*
          * Check the availability of horizontal tiles
@@ -115,10 +117,28 @@ public class CheckersApp extends Application {
         for (int i = 0; i < WIDTH; i++) {
             if (board[i][y].hasPiece()) totalPiece++;
         }
-        if (x + totalPiece >= 0 && x + totalPiece < WIDTH)
-            availableTiles.add(new TilePosition(x + totalPiece, y));
-        if (x - totalPiece >= 0 && x - totalPiece < WIDTH)
-            availableTiles.add(new TilePosition(x - totalPiece, y));
+        if (x + totalPiece >= 0 && x + totalPiece < WIDTH) {
+            boolean oppFound = false;
+            for (int i = x + 1; i < x + totalPiece; i++) {
+                if (board[i][y].hasPiece() && board[i][y].getPiece().getType() == oppType) {
+                    oppFound = true;
+                    break;
+                }
+            }
+            if (!oppFound)
+                availableTiles.add(new TilePosition(x + totalPiece, y));
+        }
+        if (x - totalPiece >= 0 && x - totalPiece < WIDTH) {
+            boolean oppFound = false;
+            for (int i = x - totalPiece + 1; i < x; i++) {
+                if (board[i][y].hasPiece() && board[i][y].getPiece().getType() == oppType) {
+                    oppFound = true;
+                    break;
+                }
+            }
+            if (!oppFound)
+                availableTiles.add(new TilePosition(x - totalPiece, y));
+        }
 
         /*
          * Check the availability of vertical tiles
@@ -127,10 +147,28 @@ public class CheckersApp extends Application {
         for (int i = 0; i < HEIGHT; i++) {
             if (board[x][i].hasPiece()) totalPiece++;
         }
-        if (y + totalPiece >= 0 && y + totalPiece <= HEIGHT)
-            availableTiles.add(new TilePosition(x, y + totalPiece));
-        if (y - totalPiece >= 0 && y - totalPiece <= HEIGHT)
-            availableTiles.add(new TilePosition(x, y - totalPiece));
+        if (y + totalPiece >= 0 && y + totalPiece <= HEIGHT) {
+            boolean oppFound = false;
+            for (int j = y + 1; j < y + totalPiece; j++) {
+                if (board[x][j].hasPiece() && board[x][j].getPiece().getType() == oppType) {
+                    oppFound = true;
+                    break;
+                }
+            }
+            if (!oppFound)
+                availableTiles.add(new TilePosition(x, y + totalPiece));
+        }
+        if (y - totalPiece >= 0 && y - totalPiece <= HEIGHT) {
+            boolean oppFound = false;
+            for (int j = y - totalPiece + 1; j < y; j++) {
+                if (board[x][j].hasPiece() && board[x][j].getPiece().getType() == oppType) {
+                    oppFound = true;
+                    break;
+                }
+            }
+            if (!oppFound)
+                availableTiles.add(new TilePosition(x, y - totalPiece));
+        }
 
         /*
          * Check the availability of diagonal tiles going from top-left to bottom-right
@@ -143,10 +181,28 @@ public class CheckersApp extends Application {
             if (board[i][j].hasPiece()) totalPiece++;
         }
         totalPiece--; // counted the piece in board[x][y] twice
-        if (x - totalPiece >= 0 && x - totalPiece < WIDTH && y - totalPiece >= 0 && y - totalPiece < HEIGHT)
-            availableTiles.add(new TilePosition(x - totalPiece, y - totalPiece));
-        if (x + totalPiece >= 0 && x + totalPiece < WIDTH && y + totalPiece >= 0 && y + totalPiece < HEIGHT)
-            availableTiles.add(new TilePosition(x + totalPiece, y + totalPiece));
+        if (x - totalPiece >= 0 && x - totalPiece < WIDTH && y - totalPiece >= 0 && y - totalPiece < HEIGHT) {
+            boolean oppFound = false;
+            for (int i = x - totalPiece + 1, j = y - totalPiece + 1; i < x && j < y; i++, j++) {
+                if (board[i][j].hasPiece() && board[i][j].getPiece().getType() == oppType) {
+                    oppFound = true;
+                    break;
+                }
+            }
+            if (!oppFound)
+                availableTiles.add(new TilePosition(x - totalPiece, y - totalPiece));
+        }
+        if (x + totalPiece >= 0 && x + totalPiece < WIDTH && y + totalPiece >= 0 && y + totalPiece < HEIGHT) {
+            boolean oppFound = false;
+            for (int i = x + 1, j = y + 1; i < x + totalPiece && j < y + totalPiece; i++, j++) {
+                if (board[i][j].hasPiece() && board[i][j].getPiece().getType() == oppType) {
+                    oppFound = true;
+                    break;
+                }
+            }
+            if (!oppFound)
+                availableTiles.add(new TilePosition(x + totalPiece, y + totalPiece));
+        }
 
         /*
          * Check the availability of diagonal tiles going from bottom-left to top-right
@@ -159,10 +215,28 @@ public class CheckersApp extends Application {
             if (board[i][j].hasPiece()) totalPiece++;
         }
         totalPiece--; // counted the piece in board[x][y] twice
-        if (x - totalPiece >= 0 && x - totalPiece < WIDTH && y + totalPiece >= 0 && y + totalPiece < HEIGHT)
-            availableTiles.add(new TilePosition(x - totalPiece, y + totalPiece));
-        if (x + totalPiece >= 0 && x + totalPiece < WIDTH && y - totalPiece >= 0 && y - totalPiece < HEIGHT)
-            availableTiles.add(new TilePosition(x + totalPiece, y - totalPiece));
+        if (x - totalPiece >= 0 && x - totalPiece < WIDTH && y + totalPiece >= 0 && y + totalPiece < HEIGHT) {
+            boolean oppFound = false;
+            for (int i = x - totalPiece + 1, j = y + totalPiece - 1; i < x && j > y; i++, j--) {
+                if (board[i][j].hasPiece() && board[i][j].getPiece().getType() == oppType) {
+                    oppFound = true;
+                    break;
+                }
+            }
+            if (!oppFound)
+                availableTiles.add(new TilePosition(x - totalPiece, y + totalPiece));
+        }
+        if (x + totalPiece >= 0 && x + totalPiece < WIDTH && y - totalPiece >= 0 && y - totalPiece < HEIGHT) {
+            boolean oppFound = false;
+            for (int i = x + 1, j = y - 1; i < x + totalPiece && j > y - totalPiece; i++, j--) {
+                if (board[i][j].hasPiece() && board[i][j].getPiece().getType() == oppType) {
+                    oppFound = true;
+                    break;
+                }
+            }
+            if (!oppFound)
+                availableTiles.add(new TilePosition(x + totalPiece, y - totalPiece));
+        }
 
         return availableTiles;
     }
