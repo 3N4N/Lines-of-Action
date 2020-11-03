@@ -105,6 +105,11 @@ public class Game extends Application {
         return piece;
     }
 
+    /**
+     * Returns an arraylist with the tiles available for movement
+     * @param x column number of the tile
+     * @param y row number of the tile
+     */
     private ArrayList<TilePosition> availableMoves(int x, int y) {
         ArrayList<TilePosition> availableTiles = new ArrayList<>();
         PieceType ownType = board[x][y].getPiece().getType();
@@ -273,7 +278,12 @@ public class Game extends Application {
 
         return availableTiles;
     }
-
+    
+    /**
+     * Returns true if a tile is inside the LOA board
+     * @param x column number of the tile
+     * @param y row number of the tile
+     */
     private boolean isWithinBoard(int x, int y) {
         return x >= 0 && x <= WIDTH && y >= 0 && y <= HEIGHT;
     }
