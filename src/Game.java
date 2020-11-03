@@ -24,7 +24,7 @@ public class Game extends Application {
 
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) {
-                board[x][y] = new Tile(((x+y) % 2 == 0), x, y);
+                board[x][y] = new Tile(((x + y) % 2 == 0), x, y);
                 tileGroup.getChildren().add(board[x][y]);
 
                 Piece piece = null;
@@ -117,7 +117,7 @@ public class Game extends Application {
         for (int i = 0; i < WIDTH; i++) {
             if (board[i][y].hasPiece()) totalPiece++;
         }
-        if (x + totalPiece >= 0 && x + totalPiece < WIDTH) {
+        if (isWithinBoard(x + totalPiece, y)) {
             boolean oppFound = false;
             for (int i = x + 1; i < x + totalPiece; i++) {
                 if (board[i][y].hasPiece() && board[i][y].getPiece().getType() == oppType) {
@@ -128,7 +128,7 @@ public class Game extends Application {
             if (!oppFound)
                 availableTiles.add(new TilePosition(x + totalPiece, y));
         }
-        if (x - totalPiece >= 0 && x - totalPiece < WIDTH) {
+        if (isWithinBoard(x - totalPiece, y)) {
             boolean oppFound = false;
             for (int i = x - totalPiece + 1; i < x; i++) {
                 if (board[i][y].hasPiece() && board[i][y].getPiece().getType() == oppType) {
@@ -147,7 +147,7 @@ public class Game extends Application {
         for (int i = 0; i < HEIGHT; i++) {
             if (board[x][i].hasPiece()) totalPiece++;
         }
-        if (y + totalPiece >= 0 && y + totalPiece <= HEIGHT) {
+        if (isWithinBoard(x, y + totalPiece)) {
             boolean oppFound = false;
             for (int j = y + 1; j < y + totalPiece; j++) {
                 if (board[x][j].hasPiece() && board[x][j].getPiece().getType() == oppType) {
@@ -158,7 +158,7 @@ public class Game extends Application {
             if (!oppFound)
                 availableTiles.add(new TilePosition(x, y + totalPiece));
         }
-        if (y - totalPiece >= 0 && y - totalPiece <= HEIGHT) {
+        if (isWithinBoard(x, y - totalPiece)) {
             boolean oppFound = false;
             for (int j = y - totalPiece + 1; j < y; j++) {
                 if (board[x][j].hasPiece() && board[x][j].getPiece().getType() == oppType) {
@@ -181,7 +181,7 @@ public class Game extends Application {
             if (board[i][j].hasPiece()) totalPiece++;
         }
         totalPiece--; // counted the piece in board[x][y] twice
-        if (x - totalPiece >= 0 && x - totalPiece < WIDTH && y - totalPiece >= 0 && y - totalPiece < HEIGHT) {
+        if (isWithinBoard(x - totalPiece, y - totalPiece)) {
             boolean oppFound = false;
             for (int i = x - totalPiece + 1, j = y - totalPiece + 1; i < x && j < y; i++, j++) {
                 if (board[i][j].hasPiece() && board[i][j].getPiece().getType() == oppType) {
@@ -192,7 +192,7 @@ public class Game extends Application {
             if (!oppFound)
                 availableTiles.add(new TilePosition(x - totalPiece, y - totalPiece));
         }
-        if (x + totalPiece >= 0 && x + totalPiece < WIDTH && y + totalPiece >= 0 && y + totalPiece < HEIGHT) {
+        if (isWithinBoard(x + totalPiece, y + totalPiece)) {
             boolean oppFound = false;
             for (int i = x + 1, j = y + 1; i < x + totalPiece && j < y + totalPiece; i++, j++) {
                 if (board[i][j].hasPiece() && board[i][j].getPiece().getType() == oppType) {
@@ -215,7 +215,7 @@ public class Game extends Application {
             if (board[i][j].hasPiece()) totalPiece++;
         }
         totalPiece--; // counted the piece in board[x][y] twice
-        if (x - totalPiece >= 0 && x - totalPiece < WIDTH && y + totalPiece >= 0 && y + totalPiece < HEIGHT) {
+        if (isWithinBoard(x - totalPiece, y + totalPiece)) {
             boolean oppFound = false;
             for (int i = x - totalPiece + 1, j = y + totalPiece - 1; i < x && j > y; i++, j--) {
                 if (board[i][j].hasPiece() && board[i][j].getPiece().getType() == oppType) {
@@ -226,7 +226,7 @@ public class Game extends Application {
             if (!oppFound)
                 availableTiles.add(new TilePosition(x - totalPiece, y + totalPiece));
         }
-        if (x + totalPiece >= 0 && x + totalPiece < WIDTH && y - totalPiece >= 0 && y - totalPiece < HEIGHT) {
+        if (isWithinBoard(x + totalPiece, y - totalPiece)) {
             boolean oppFound = false;
             for (int i = x + 1, j = y - 1; i < x + totalPiece && j > y - totalPiece; i++, j--) {
                 if (board[i][j].hasPiece() && board[i][j].getPiece().getType() == oppType) {
@@ -239,6 +239,10 @@ public class Game extends Application {
         }
 
         return availableTiles;
+    }
+
+    private boolean isWithinBoard(int x, int y) {
+        return x >= 0 && x <= WIDTH && y >= 0 && y <= HEIGHT;
     }
 
     @Override
