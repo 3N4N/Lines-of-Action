@@ -7,7 +7,7 @@ import javafx.scene.Scene;
 
 import java.util.ArrayList;
 
-public class CheckersApp extends Application {
+public class Game extends Application {
     public static final int TILE_SIZE = 80;
     public static final int HEIGHT = 8;
     public static final int WIDTH = 8;

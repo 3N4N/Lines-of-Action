@@ -28,10 +28,10 @@ public class Tile extends Rectangle {
     public Tile(boolean light, int x, int y) {
         position = new TilePosition(x, y);
 
-        setWidth(CheckersApp.TILE_SIZE);
-        setHeight(CheckersApp.TILE_SIZE);
+        setWidth(Game.TILE_SIZE);
+        setHeight(Game.TILE_SIZE);
 
-        relocate(x * CheckersApp.TILE_SIZE, y * CheckersApp.TILE_SIZE);
+        relocate(x * Game.TILE_SIZE, y * Game.TILE_SIZE);
         setFill(light ? Color.valueOf("#feb") : Color.valueOf("#582"));
     }
 }

@@ -3,7 +3,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
 
 public class Piece extends StackPane {
-    public static final int TILE_SIZE = CheckersApp.TILE_SIZE;
+    public static final int TILE_SIZE = Game.TILE_SIZE;
 
     private PieceType type;
     private double mouseX, mouseY;
