@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Random;
 
 public class Game extends Application {
     public static final int TILE_SIZE = 80;
@@ -80,51 +81,82 @@ public class Game extends Application {
             int newY = toBoard(piece.getLayoutY());
             int oldX = toBoard(piece.getOldX());
             int oldY = toBoard(piece.getOldY());
-
-            MoveResult result;
-
-            if (newX == oldX && newY == oldY) {
-                result = new MoveResult(MoveType.NONE);
-            }
-            else if (newX < 0 || newY < 0 || newX >= TILES || newY >= TILES) {
-                result = new MoveResult(MoveType.NONE);
-            }
-            else {
-                result = tryMove(piece, newX, newY);
-            }
-
-            switch (result.getType()) {
-                case NONE:
-                    piece.abortMove();
-                    break;
-                case NORMAL:
-                    piece.move(newX, newY);
-                    board[oldX][oldY].setPiece(null);
-                    board[newX][newY].setPiece(piece);
-                    changeCurrentPlayer();
-                    break;
-                case KILL:
-                    piece.move(newX, newY);
-                    board[oldX][oldY].setPiece(null);
-                    board[newX][newY].setPiece(piece);
-
-                    Piece otherPiece = result.getPiece();
-                    pieceGroup.getChildren().remove(otherPiece);
-                    changeCurrentPlayer();
-                    break;
-            }
-
-            resetBoard();
-
-            if (hasWon(PieceType.RED) && hasWon(PieceType.WHITE))
-                System.out.println("It's a TIE!");
-            else if (hasWon(PieceType.RED))
-                    System.out.println("RED Won");
-            else if (hasWon(PieceType.WHITE))
-                    System.out.println("WHITE Won!!!");
+            MoveResult result = movePiece(piece, oldX, oldY, newX, newY);
+            if (result.getType() != MoveType.NONE)
+                machineMove(PieceType.WHITE);
         });
 
         return piece;
+    }
+
+    private MoveResult movePiece(Piece piece, int oldX, int oldY, int newX, int newY) {
+        MoveResult result;
+
+        if (newX == oldX && newY == oldY) {
+            System.out.println("Wat!!");
+            result = new MoveResult(MoveType.NONE);
+        }
+        else if (newX < 0 || newY < 0 || newX >= TILES || newY >= TILES) {
+            result = new MoveResult(MoveType.NONE);
+        }
+        else {
+            result = tryMove(piece, newX, newY);
+        }
+
+        switch (result.getType()) {
+            case NONE:
+                piece.abortMove();
+                break;
+            case NORMAL:
+                piece.move(newX, newY);
+                board[oldX][oldY].setPiece(null);
+                board[newX][newY].setPiece(piece);
+                changeCurrentPlayer();
+                break;
+            case KILL:
+                piece.move(newX, newY);
+                board[oldX][oldY].setPiece(null);
+                board[newX][newY].setPiece(piece);
+
+                Piece otherPiece = result.getPiece();
+                pieceGroup.getChildren().remove(otherPiece);
+                changeCurrentPlayer();
+                break;
+        }
+
+        resetBoard();
+
+        if (hasWon(PieceType.RED) && hasWon(PieceType.WHITE))
+            System.out.println("It's a TIE!");
+        else if (hasWon(PieceType.RED))
+            System.out.println("RED Won");
+        else if (hasWon(PieceType.WHITE))
+            System.out.println("WHITE Won!!!");
+
+        return result;
+    }
+
+    private void machineMove(PieceType side) {
+        ArrayList<TilePosition> pcsPos = new ArrayList<>();
+        for (int i = 0; i < TILES; i++) {
+            for (int j = 0; j < TILES; j++) {
+                if (hasPieceOnXY(i, j, side)) {
+                    pcsPos.add(board[i][j].getPosition());
+                }
+            }
+        }
+        Random rand = new Random();
+        int pos = rand.nextInt(pcsPos.size());
+        int oldX = pcsPos.get(pos).getX();
+        int oldY = pcsPos.get(pos).getY();
+        Piece piece = board[oldX][oldY].getPiece();
+
+        ArrayList<TilePosition> availPos = availableMoves(oldX, oldY);
+        pos = rand.nextInt(availPos.size());
+        int newX = availPos.get(pos).getX();
+        int newY = availPos.get(pos).getY();
+
+        movePiece(piece, oldX, oldY, newX, newY);
     }
 
     private void changeCurrentPlayer() {
