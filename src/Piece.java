@@ -70,7 +70,7 @@ public class Piece extends StackPane {
             if (type == this.curPlayer) {
                 relocate(e.getSceneX() - mouseX + oldX, e.getSceneY() - mouseY + oldY);
                 for (TilePosition pos : availableMoves) {
-                    this.board[pos.x][pos.y].changeColor(TileColor.GREEN);
+                    this.board[pos.getX()][pos.getY()].changeColor(TileColor.GREEN);
                 }
             }
         });

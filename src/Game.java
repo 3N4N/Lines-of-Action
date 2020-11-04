@@ -353,13 +353,13 @@ public class Game extends Application {
 
         LinkedList<TilePosition> queue = new LinkedList<>();
         queue.add(firstSpot);
-        visited[firstSpot.x][firstSpot.y] = true;
+        visited[firstSpot.getX()][firstSpot.getY()] = true;
         ctPcs++;
 
         while (!queue.isEmpty()) {
             TilePosition pos = queue.remove();
-            int i = pos.x;
-            int j = pos.y;
+            int i = pos.getX();
+            int j = pos.getY();
 
             int[] intI = {i - 1, i , i + 1};
             int[] intJ = {j - 1, j, j + 1};
