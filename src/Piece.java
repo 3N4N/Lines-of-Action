@@ -2,12 +2,15 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
 
+import java.util.ArrayList;
+
 public class Piece extends StackPane {
     public static final int TILE_SIZE = Game.TILE_SIZE;
 
     private PieceType type;
     private double mouseX, mouseY;
     private double oldX, oldY;
+    private ArrayList<TilePosition> availableMoves;
 
     public PieceType getType() {
         return type;
@@ -19,6 +22,14 @@ public class Piece extends StackPane {
 
     public double getOldY() {
         return oldY;
+    }
+
+    public ArrayList<TilePosition> getAvailableMoves() {
+        return availableMoves;
+    }
+
+    public void setAvailableMoves(ArrayList<TilePosition> availableMoves) {
+        this.availableMoves = availableMoves;
     }
 
     public Piece(PieceType type, int x, int y) {
@@ -46,8 +57,12 @@ public class Piece extends StackPane {
             mouseX = e.getSceneX();
             mouseY = e. getSceneY();
         });
+
         setOnMouseDragged(e -> {
             relocate(e.getSceneX() - mouseX + oldX, e.getSceneY() - mouseY + oldY);
+            for (TilePosition pos : availableMoves) {
+                Game.board[pos.x][pos.y].changeColor(TileColor.GREEN);
+            }
         });
     }
 

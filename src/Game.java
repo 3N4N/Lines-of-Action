@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Game extends Application {
     public static final int TILE_SIZE = 80;
@@ -14,7 +15,7 @@ public class Game extends Application {
     private Group tileGroup = new Group();
     private Group pieceGroup = new Group();
 
-    Tile[][] board = new Tile[TILES][TILES];
+    public static Tile[][] board = new Tile[TILES][TILES];
 
     private Parent createContent() {
         Pane root = new Pane();
@@ -27,10 +28,10 @@ public class Game extends Application {
                 tileGroup.getChildren().add(board[x][y]);
 
                 Piece piece = null;
-                if ((y == 0 || y == 7) && (x > 0 && x < 7)) {
+                if ((y == 0 || y == TILES - 1) && (x > 0 && x < TILES - 1)) {
                     piece = makePiece(PieceType.RED, x, y);
                 }
-                if ((x == 0 || x == 7) && (y > 0 && y < 7)) {
+                if ((x == 0 || x == TILES - 1) && (y > 0 && y < TILES - 1)) {
                     piece = makePiece(PieceType.WHITE, x, y);
                 }
                 if (piece != null) {
@@ -40,19 +41,27 @@ public class Game extends Application {
             }
         }
 
+        for (int y = 0; y < TILES; y++) {
+            for (int x = 0; x < TILES; x++) {
+                Piece piece = board[x][y].getPiece();
+                if (piece != null) {
+                    piece.setAvailableMoves(availableMoves(x, y));
+                }
+            }
+        }
+
         return root;
     }
 
     private MoveResult tryMove(Piece piece, int newX, int newY) {
-        int x0 = toBoard(piece.getOldX());
-        int y0 = toBoard(piece.getOldY());
-
         TilePosition newPosition = new TilePosition(newX, newY);
-        if (availableMoves(x0, y0).contains(newPosition)) {
-            if (board[newX][newY].hasPiece())
+        if (piece.getAvailableMoves().contains(newPosition)) {
+            if (board[newX][newY].hasPiece()) {
                 return new MoveResult(MoveType.KILL, board[newX][newY].getPiece());
-            else
+            }
+            else {
                 return new MoveResult(MoveType.NORMAL);
+            }
         }
 
         return new MoveResult(MoveType.NONE);
@@ -68,17 +77,20 @@ public class Game extends Application {
         piece.setOnMouseReleased(e -> {
             int newX = toBoard(piece.getLayoutX());
             int newY = toBoard(piece.getLayoutY());
+            int oldX = toBoard(piece.getOldX());
+            int oldY = toBoard(piece.getOldY());
 
             MoveResult result;
 
-            if (newX < 0 || newY < 0 || newX >= TILES || newY >= TILES) {
+            if (newX == oldX && newY == oldY) {
                 result = new MoveResult(MoveType.NONE);
-            } else {
+            }
+            else if (newX < 0 || newY < 0 || newX >= TILES || newY >= TILES) {
+                result = new MoveResult(MoveType.NONE);
+            }
+            else {
                 result = tryMove(piece, newX, newY);
             }
-
-            int x0 = toBoard(piece.getOldX());
-            int y0 = toBoard(piece.getOldY());
 
             switch (result.getType()) {
                 case NONE:
@@ -86,26 +98,48 @@ public class Game extends Application {
                     break;
                 case NORMAL:
                     piece.move(newX, newY);
-                    board[x0][y0].setPiece(null);
+                    board[oldX][oldY].setPiece(null);
                     board[newX][newY].setPiece(piece);
                     break;
                 case KILL:
                     piece.move(newX, newY);
-                    board[x0][y0].setPiece(null);
+                    board[oldX][oldY].setPiece(null);
                     board[newX][newY].setPiece(piece);
 
                     Piece otherPiece = result.getPiece();
-                    board[toBoard(otherPiece.getOldX())][toBoard(otherPiece.getOldY())].setPiece(null);
                     pieceGroup.getChildren().remove(otherPiece);
                     break;
             }
+
+            resetBoard();
         });
 
         return piece;
     }
 
     /**
-     * Provide a set of tiles available for making the next move
+     * Resets the LOA board. The tiles are redrawn with default colors.
+     * For each piece, the available tiles for next move are recounted.
+     */
+    private void resetBoard() {
+        for (int i = 0; i < TILES; i++) {
+            for (int j = 0; j < TILES; j++) {
+                if ((i + j) % 2 == 0) {
+                    board[i][j].changeColor(TileColor.LIGHT);
+                }
+                else {
+                    board[i][j].changeColor(TileColor.DARK);
+                }
+
+                if (board[i][j].hasPiece())
+                    board[i][j].getPiece().setAvailableMoves(availableMoves(i, j));
+            }
+        }
+    }
+
+    /**
+     * Provides a set of tiles available for making the next move.
+     *
      * @param x column number of the tile
      * @param y row number of the tile
      * @return an arraylist of the tiles available for next move
@@ -272,8 +306,8 @@ public class Game extends Application {
     }
 
     /**
-     * Returns true if a tile is inside the LOA board
-     * Check if the specified tile is inside the board
+     * Checks if the specified tile is inside the board.
+     *
      * @param x column number of the tile
      * @param y row number of the tile
      * @return true if tile at column x and row y is inside the board
@@ -283,13 +317,15 @@ public class Game extends Application {
     }
 
     /**
-     * Check if the piece on a tile is of the specified type
+     * Checks if the piece on the tile is of the specified type.
+     *
      * @param x column number of the tile
      * @param y row number of the tile
      * @param type type of the piece (RED or WHITE)
-     * @return true if the piece at col x and row y is of type parameter
+     * @return true if the piece at col x and row y is of `type`
      */
     private boolean hasPieceOnXY(int x, int y, PieceType type) {
+        if (!isWithinBoard(x, y)) return false;
         if (!board[x][y].hasPiece()) return false;
         return board[x][y].getPiece().getType() == type;
     }
