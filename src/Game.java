@@ -9,21 +9,20 @@ import java.util.ArrayList;
 
 public class Game extends Application {
     public static final int TILE_SIZE = 80;
-    public static final int HEIGHT = 8;
-    public static final int WIDTH = 8;
+    public static final int TILES = 8;
 
     private Group tileGroup = new Group();
     private Group pieceGroup = new Group();
 
-    Tile[][] board = new Tile[HEIGHT][WIDTH];
+    Tile[][] board = new Tile[TILES][TILES];
 
     private Parent createContent() {
         Pane root = new Pane();
-        root.setPrefSize(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE);
+        root.setPrefSize(TILES * TILE_SIZE, TILES * TILE_SIZE);
         root.getChildren().addAll(tileGroup, pieceGroup);
 
-        for (int y = 0; y < HEIGHT; y++) {
-            for (int x = 0; x < WIDTH; x++) {
+        for (int y = 0; y < TILES; y++) {
+            for (int x = 0; x < TILES; x++) {
                 board[x][y] = new Tile(((x + y) % 2 == 0), x, y);
                 tileGroup.getChildren().add(board[x][y]);
 
@@ -72,7 +71,7 @@ public class Game extends Application {
 
             MoveResult result;
 
-            if (newX < 0 || newY < 0 || newX >= WIDTH || newY >= HEIGHT) {
+            if (newX < 0 || newY < 0 || newX >= TILES || newY >= TILES) {
                 result = new MoveResult(MoveType.NONE);
             } else {
                 result = tryMove(piece, newX, newY);
@@ -106,9 +105,10 @@ public class Game extends Application {
     }
 
     /**
-     * Returns an arraylist with the tiles available for movement
+     * Provide a set of tiles available for making the next move
      * @param x column number of the tile
      * @param y row number of the tile
+     * @return an arraylist of the tiles available for next move
      */
     private ArrayList<TilePosition> availableMoves(int x, int y) {
         ArrayList<TilePosition> availableTiles = new ArrayList<>();
@@ -120,7 +120,7 @@ public class Game extends Application {
          */
         int totalPiece = 0;
         boolean oppFound, occupied;
-        for (int i = 0; i < WIDTH; i++) {
+        for (int i = 0; i < TILES; i++) {
             if (board[i][y].hasPiece()) totalPiece++;
         }
         if (isWithinBoard(x + totalPiece, y)) {
@@ -158,7 +158,7 @@ public class Game extends Application {
          * Check the availability of vertical tiles
          */
         totalPiece = 0;
-        for (int i = 0; i < HEIGHT; i++) {
+        for (int i = 0; i < TILES; i++) {
             if (board[x][i].hasPiece()) totalPiece++;
         }
         if (isWithinBoard(x, y + totalPiece)) {
@@ -196,10 +196,10 @@ public class Game extends Application {
          * Check the availability of diagonal tiles going from top-left to bottom-right
          */
         totalPiece = 0;
-        for (int i = x, j = y; i >= 0 && i < WIDTH && j >= 0 && j < HEIGHT; i--, j--) {
+        for (int i = x, j = y; i >= 0 && i < TILES && j >= 0 && j < TILES; i--, j--) {
             if (board[i][j].hasPiece()) totalPiece++;
         }
-        for (int i = x, j = y; i >= 0 && i < WIDTH && j >= 0 && j < HEIGHT; i++, j++) {
+        for (int i = x, j = y; i >= 0 && i < TILES && j >= 0 && j < TILES; i++, j++) {
             if (board[i][j].hasPiece()) totalPiece++;
         }
         totalPiece--; // counted the piece in board[x][y] twice
@@ -238,10 +238,10 @@ public class Game extends Application {
          * Check the availability of diagonal tiles going from bottom-left to top-right
          */
         totalPiece = 0;
-        for (int i = x, j = y; i >= 0 && i < WIDTH && j >= 0 && j < HEIGHT; i--, j++) {
+        for (int i = x, j = y; i >= 0 && i < TILES && j >= 0 && j < TILES; i--, j++) {
             if (board[i][j].hasPiece()) totalPiece++;
         }
-        for (int i = x, j = y; i >= 0 && i < WIDTH && j >= 0 && j < HEIGHT; i++, j--) {
+        for (int i = x, j = y; i >= 0 && i < TILES && j >= 0 && j < TILES; i++, j--) {
             if (board[i][j].hasPiece()) totalPiece++;
         }
         totalPiece--; // counted the piece in board[x][y] twice
@@ -278,14 +278,16 @@ public class Game extends Application {
 
         return availableTiles;
     }
-    
+
     /**
      * Returns true if a tile is inside the LOA board
+     * Check if the specified tile is inside the board
      * @param x column number of the tile
      * @param y row number of the tile
+     * @return true if tile at column x and row y is inside the board
      */
     private boolean isWithinBoard(int x, int y) {
-        return x >= 0 && x <= WIDTH && y >= 0 && y <= HEIGHT;
+        return x >= 0 && x < TILES && y >= 0 && y < TILES;
     }
 
     @Override
