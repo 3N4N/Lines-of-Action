@@ -115,12 +115,19 @@ public class Game extends Application {
             }
 
             resetBoard();
+
+            if (hasWon(PieceType.RED) && hasWon(PieceType.WHITE))
+                System.out.println("It's a TIE!");
+            else if (hasWon(PieceType.RED))
+                    System.out.println("RED Won");
+            else if (hasWon(PieceType.WHITE))
+                    System.out.println("WHITE Won!!!");
         });
 
         return piece;
     }
 
-    public void changeCurrentPlayer() {
+    private void changeCurrentPlayer() {
         curPlayer = curPlayer == PieceType.RED ? PieceType.WHITE : PieceType.RED;
     }
 
@@ -312,6 +319,67 @@ public class Game extends Application {
         }
 
         return availableTiles;
+    }
+
+    /**
+     * Checks if the specified side has won.
+     * <p>
+     * A side wins if all the pieces of the side are contiguous.
+     *
+     * @param side the side
+     * @return true if the pieces of `side` are contiguous
+     */
+    private boolean hasWon(PieceType side) {
+        int nrPcs = 0;
+        int ctPcs = 0;
+
+        boolean[][] visited = new boolean[TILES][TILES];
+        TilePosition firstSpot = null;
+        for (int i = 0; i < TILES; i++) {
+            for (int j = 0; j < TILES; j++) {
+                visited[i][j] = false;
+                if (board[i][j].hasPiece() && board[i][j].getPiece().getType() == side) {
+                    nrPcs++;
+                    if (firstSpot == null)
+                        firstSpot = board[i][j].getPosition();
+                }
+            }
+        }
+
+        if (firstSpot == null) {
+            System.out.println("FUCK!");
+            return false;
+        }
+
+        LinkedList<TilePosition> queue = new LinkedList<>();
+        queue.add(firstSpot);
+        visited[firstSpot.x][firstSpot.y] = true;
+        ctPcs++;
+
+        while (!queue.isEmpty()) {
+            TilePosition pos = queue.remove();
+            int i = pos.x;
+            int j = pos.y;
+
+            int[] intI = {i - 1, i , i + 1};
+            int[] intJ = {j - 1, j, j + 1};
+
+            for (int m = 0; m < 3; m++) {
+                for (int n = 0; n < 3; n++) {
+                    if (m == 1 && n == 1) continue;
+                    if (isWithinBoard(intI[m], intJ[n]) && !visited[intI[m]][intJ[n]]) {
+                        Piece p = board[intI[m]][intJ[n]].getPiece();
+                        if (p != null && p.getType() == side) {
+                            queue.add(board[intI[m]][intJ[n]].getPosition());
+                            visited[intI[m]][intJ[n]] = true;
+                            ctPcs++;
+                        }
+                    }
+                }
+            }
+        }
+
+        return ctPcs == nrPcs;
     }
 
     /**
