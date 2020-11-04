@@ -6,6 +6,8 @@ import java.util.ArrayList;
 
 public class Piece extends StackPane {
     public static final int TILE_SIZE = Game.TILE_SIZE;
+    private PieceType curPlayer;
+    private Tile[][] board;
 
     private PieceType type;
     private double mouseX, mouseY;
@@ -24,6 +26,10 @@ public class Piece extends StackPane {
         return oldY;
     }
 
+    public void setCurPlayer(PieceType curPlayer) {
+        this.curPlayer = curPlayer;
+    }
+
     public ArrayList<TilePosition> getAvailableMoves() {
         return availableMoves;
     }
@@ -32,8 +38,10 @@ public class Piece extends StackPane {
         this.availableMoves = availableMoves;
     }
 
-    public Piece(PieceType type, int x, int y) {
+    public Piece(PieceType type, int x, int y, Tile[][] board, PieceType curPlayer) {
         this.type = type;
+        this.curPlayer = curPlayer;
+        this.board = board;
 
         move(x, y);
 
@@ -59,9 +67,11 @@ public class Piece extends StackPane {
         });
 
         setOnMouseDragged(e -> {
-            relocate(e.getSceneX() - mouseX + oldX, e.getSceneY() - mouseY + oldY);
-            for (TilePosition pos : availableMoves) {
-                Game.board[pos.x][pos.y].changeColor(TileColor.GREEN);
+            if (type == this.curPlayer) {
+                relocate(e.getSceneX() - mouseX + oldX, e.getSceneY() - mouseY + oldY);
+                for (TilePosition pos : availableMoves) {
+                    this.board[pos.x][pos.y].changeColor(TileColor.GREEN);
+                }
             }
         });
     }

@@ -15,7 +15,8 @@ public class Game extends Application {
     private Group tileGroup = new Group();
     private Group pieceGroup = new Group();
 
-    public static Tile[][] board = new Tile[TILES][TILES];
+    private Tile[][] board = new Tile[TILES][TILES];
+    private PieceType curPlayer = PieceType.RED;
 
     private Parent createContent() {
         Pane root = new Pane();
@@ -72,7 +73,7 @@ public class Game extends Application {
     }
 
     private Piece makePiece(PieceType type, int x, int y) {
-        Piece piece = new Piece(type, x, y);
+        Piece piece = new Piece(type, x, y, board, curPlayer);
 
         piece.setOnMouseReleased(e -> {
             int newX = toBoard(piece.getLayoutX());
@@ -100,6 +101,7 @@ public class Game extends Application {
                     piece.move(newX, newY);
                     board[oldX][oldY].setPiece(null);
                     board[newX][newY].setPiece(piece);
+                    changeCurrentPlayer();
                     break;
                 case KILL:
                     piece.move(newX, newY);
@@ -108,6 +110,7 @@ public class Game extends Application {
 
                     Piece otherPiece = result.getPiece();
                     pieceGroup.getChildren().remove(otherPiece);
+                    changeCurrentPlayer();
                     break;
             }
 
@@ -115,6 +118,10 @@ public class Game extends Application {
         });
 
         return piece;
+    }
+
+    public void changeCurrentPlayer() {
+        curPlayer = curPlayer == PieceType.RED ? PieceType.WHITE : PieceType.RED;
     }
 
     /**
@@ -131,8 +138,10 @@ public class Game extends Application {
                     board[i][j].changeColor(TileColor.DARK);
                 }
 
-                if (board[i][j].hasPiece())
+                if (board[i][j].hasPiece()) {
+                    board[i][j].getPiece().setCurPlayer(curPlayer);
                     board[i][j].getPiece().setAvailableMoves(availableMoves(i, j));
+                }
             }
         }
     }
