@@ -2,12 +2,17 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
 
+import java.util.ArrayList;
+
 public class Piece extends StackPane {
-    public static final int TILE_SIZE = CheckersApp.TILE_SIZE;
+    public static final int TILE_SIZE = Game.TILE_SIZE;
+    private PieceType curPlayer;
+    private Tile[][] board;
 
     private PieceType type;
     private double mouseX, mouseY;
     private double oldX, oldY;
+    private ArrayList<TilePosition> availableMoves;
 
     public PieceType getType() {
         return type;
@@ -21,8 +26,22 @@ public class Piece extends StackPane {
         return oldY;
     }
 
-    public Piece(PieceType type, int x, int y) {
+    public void setCurPlayer(PieceType curPlayer) {
+        this.curPlayer = curPlayer;
+    }
+
+    public ArrayList<TilePosition> getAvailableMoves() {
+        return availableMoves;
+    }
+
+    public void setAvailableMoves(ArrayList<TilePosition> availableMoves) {
+        this.availableMoves = availableMoves;
+    }
+
+    public Piece(PieceType type, int x, int y, Tile[][] board, PieceType curPlayer) {
         this.type = type;
+        this.curPlayer = curPlayer;
+        this.board = board;
 
         move(x, y);
 
@@ -46,8 +65,14 @@ public class Piece extends StackPane {
             mouseX = e.getSceneX();
             mouseY = e. getSceneY();
         });
+
         setOnMouseDragged(e -> {
-            relocate(e.getSceneX() - mouseX + oldX, e.getSceneY() - mouseY + oldY);
+            if (type == this.curPlayer) {
+                relocate(e.getSceneX() - mouseX + oldX, e.getSceneY() - mouseY + oldY);
+                for (TilePosition pos : availableMoves) {
+                    this.board[pos.getX()][pos.getY()].changeColor(TileColor.GREEN);
+                }
+            }
         });
     }
 
