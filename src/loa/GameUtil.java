@@ -3,6 +3,9 @@ package loa;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Parent;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
@@ -204,15 +207,34 @@ public class GameUtil {
         return new MoveResult(MoveType.NONE);
     }
 
+    /**
+     * Draws a dialog box with the information of the winner, if the game is over.
+     */
     public void declareWinner() {
-        if (hasWon(board, PieceType.RED) && hasWon(board, PieceType.WHITE))
-            System.out.println("It's a TIE!");
-        else if (hasWon(board, PieceType.RED))
-            System.out.println("RED Won");
-        else if (hasWon(board, PieceType.WHITE))
-            System.out.println("WHITE Won!!!");
+        if (gameOver(board)) {
+            Dialog<String> dialog = new Dialog<String>();
+            dialog.setTitle("Result");
 
-        Platform.exit();
+            if (hasWon(board, PieceType.RED) && hasWon(board, PieceType.WHITE)) {
+                dialog.setContentText("It's a TIE!");
+                System.out.println("It's a TIE!");
+            }
+            else if (hasWon(board, PieceType.RED)) {
+                dialog.setContentText("RED Won!");
+                System.out.println("RED Won!");
+            }
+            else if (hasWon(board, PieceType.WHITE)) {
+                dialog.setContentText("WHITE Won!");
+                System.out.println("WHITE Won!");
+            }
+
+            ButtonType type = new ButtonType("Ok", ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().add(type);
+
+            dialog.showAndWait();
+
+            Platform.exit();
+        }
     }
 
     /**
@@ -238,6 +260,10 @@ public class GameUtil {
                 }
             }
         }
+    }
+
+    public PieceType changeCurrentPlayer() {
+        return curPlayer == PieceType.WHITE ? PieceType.RED : PieceType.WHITE;
     }
 
     /**
