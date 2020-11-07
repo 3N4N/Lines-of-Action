@@ -220,8 +220,14 @@ public class GameUtil {
             dialog.setTitle("Result");
 
             if (hasWon(board, PieceType.RED) && hasWon(board, PieceType.WHITE)) {
-                dialog.setContentText("It's a TIE!");
-                System.out.println("It's a TIE!");
+                if (curPlayer == PieceType.RED) {
+                    dialog.setContentText("WHITE Won!");
+                    System.out.println("WHITE Won!");
+                }
+                else {
+                    dialog.setContentText("RED Won!");
+                    System.out.println("RED Won!");
+                }
             }
             else if (hasWon(board, PieceType.RED)) {
                 dialog.setContentText("RED Won!");

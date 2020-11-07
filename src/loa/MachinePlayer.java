@@ -137,7 +137,10 @@ public class MachinePlayer extends Player {
                 return Integer.MIN_VALUE + 1;
             }
             else {
-                return 0;
+                if (isMaximizing)
+                    return Integer.MIN_VALUE + 1; // last move was red
+                else
+                    return Integer.MAX_VALUE - 1; // otherwise
             }
         }
 
