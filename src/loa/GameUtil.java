@@ -1,25 +1,35 @@
-import javafx.application.Application;
+package loa;
+
+import javafx.application.Platform;
 import javafx.scene.Group;
-import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Random;
 
-public class Game extends Application {
-    public static final int TILE_SIZE = 80;
-    public static final int TILES = 8;
+import static loa.Game.TILES;
+import static loa.Game.TILE_SIZE;
 
-    private Group tileGroup = new Group();
-    private Group pieceGroup = new Group();
+public class GameUtil {
+    public Group tileGroup = new Group();
+    public Group pieceGroup = new Group();
 
     private Tile[][] board = new Tile[TILES][TILES];
     private PieceType curPlayer = PieceType.RED;
 
-    private Parent createContent() {
+    private Player player1;
+    private Player player2;
+
+    public void setPlayer1(Player player1) {
+        this.player1 = player1;
+    }
+
+    public void setPlayer2(Player player2) {
+        this.player2 = player2;
+    }
+
+    public Parent createContent() {
         Pane root = new Pane();
         root.setPrefSize(TILES * TILE_SIZE, TILES * TILE_SIZE);
         root.getChildren().addAll(tileGroup, pieceGroup);
@@ -47,7 +57,8 @@ public class Game extends Application {
             for (int x = 0; x < TILES; x++) {
                 Piece piece = board[x][y].getPiece();
                 if (piece != null) {
-                    piece.setAvailableMoves(availableMoves(x, y));
+                    piece.setCurPlayer(curPlayer);
+                    piece.setAvailableMoves(availableMoves(board, x, y));
                 }
             }
         }
@@ -55,7 +66,72 @@ public class Game extends Application {
         return root;
     }
 
-    private MoveResult tryMove(Piece piece, int newX, int newY) {
+    private Piece makePiece(PieceType type, int x, int y) {
+        Piece piece = new Piece(type, x, y, board);
+
+        piece.setOnMouseReleased(e -> {
+            int newX = toBoard(piece.getLayoutX());
+            int newY = toBoard(piece.getLayoutY());
+            int oldX = toBoard(piece.getOldX());
+            int oldY = toBoard(piece.getOldY());
+            player1.setMoveFrom(new TilePosition(oldX, oldY));
+            player1.setMoveTo(new TilePosition(newX, newY));
+            MoveResult result = player1.makeMove(board);
+            if (result.getType() != MoveType.NONE) {
+                player2.makeMove(board);
+            }
+        });
+
+        return piece;
+    }
+
+    private int toBoard(double pixel) {
+        return (int) (pixel + TILE_SIZE / 2) / TILE_SIZE;
+    }
+
+    public MoveResult movePiece(Tile[][] board, Piece piece,
+                                int oldX, int oldY, int newX, int newY) {
+        MoveResult result;
+
+        if (newX == oldX && newY == oldY) {
+            System.out.println("Wat!!");
+            result = new MoveResult(MoveType.NONE);
+        }
+        else if (newX < 0 || newY < 0 || newX >= TILES || newY >= TILES) {
+            result = new MoveResult(MoveType.NONE);
+        }
+        else {
+            result = tryMove(board, piece, newX, newY);
+        }
+
+        switch (result.getType()) {
+            case NONE:
+                piece.abortMove();
+                break;
+            case NORMAL:
+                piece.move(newX, newY);
+                board[oldX][oldY].setPiece(null);
+                board[newX][newY].setPiece(piece);
+//                curPlayer = changeCurrentPlayer(curPlayer);
+                break;
+            case KILL:
+                piece.move(newX, newY);
+                board[oldX][oldY].setPiece(null);
+                board[newX][newY].setPiece(piece);
+
+                Piece otherPiece = result.getPiece();
+                pieceGroup.getChildren().remove(otherPiece);
+//                curPlayer = changeCurrentPlayer(curPlayer);
+                break;
+        }
+
+        resetBoard(board);
+//        declareWinner();
+
+        return result;
+    }
+
+    public MoveResult tryMove(Tile[][] board, Piece piece, int newX, int newY) {
         TilePosition newPosition = new TilePosition(newX, newY);
         if (piece.getAvailableMoves().contains(newPosition)) {
             if (board[newX][newY].hasPiece()) {
@@ -69,105 +145,22 @@ public class Game extends Application {
         return new MoveResult(MoveType.NONE);
     }
 
-    private int toBoard(double pixel) {
-        return (int) (pixel + TILE_SIZE / 2) / TILE_SIZE;
-    }
-
-    private Piece makePiece(PieceType type, int x, int y) {
-        Piece piece = new Piece(type, x, y, board, curPlayer);
-
-        piece.setOnMouseReleased(e -> {
-            int newX = toBoard(piece.getLayoutX());
-            int newY = toBoard(piece.getLayoutY());
-            int oldX = toBoard(piece.getOldX());
-            int oldY = toBoard(piece.getOldY());
-            MoveResult result = movePiece(piece, oldX, oldY, newX, newY);
-            if (result.getType() != MoveType.NONE)
-                machineMove(PieceType.WHITE);
-        });
-
-        return piece;
-    }
-
-    private MoveResult movePiece(Piece piece, int oldX, int oldY, int newX, int newY) {
-        MoveResult result;
-
-        if (newX == oldX && newY == oldY) {
-            System.out.println("Wat!!");
-            result = new MoveResult(MoveType.NONE);
-        }
-        else if (newX < 0 || newY < 0 || newX >= TILES || newY >= TILES) {
-            result = new MoveResult(MoveType.NONE);
-        }
-        else {
-            result = tryMove(piece, newX, newY);
-        }
-
-        switch (result.getType()) {
-            case NONE:
-                piece.abortMove();
-                break;
-            case NORMAL:
-                piece.move(newX, newY);
-                board[oldX][oldY].setPiece(null);
-                board[newX][newY].setPiece(piece);
-                changeCurrentPlayer();
-                break;
-            case KILL:
-                piece.move(newX, newY);
-                board[oldX][oldY].setPiece(null);
-                board[newX][newY].setPiece(piece);
-
-                Piece otherPiece = result.getPiece();
-                pieceGroup.getChildren().remove(otherPiece);
-                changeCurrentPlayer();
-                break;
-        }
-
-        resetBoard();
-
-        if (hasWon(PieceType.RED) && hasWon(PieceType.WHITE))
+    public void declareWinner() {
+        if (hasWon(board, PieceType.RED) && hasWon(board, PieceType.WHITE))
             System.out.println("It's a TIE!");
-        else if (hasWon(PieceType.RED))
+        else if (hasWon(board, PieceType.RED))
             System.out.println("RED Won");
-        else if (hasWon(PieceType.WHITE))
+        else if (hasWon(board, PieceType.WHITE))
             System.out.println("WHITE Won!!!");
 
-        return result;
-    }
-
-    private void machineMove(PieceType side) {
-        ArrayList<TilePosition> pcsPos = new ArrayList<>();
-        for (int i = 0; i < TILES; i++) {
-            for (int j = 0; j < TILES; j++) {
-                if (hasPieceOnXY(i, j, side)) {
-                    pcsPos.add(board[i][j].getPosition());
-                }
-            }
-        }
-        Random rand = new Random();
-        int pos = rand.nextInt(pcsPos.size());
-        int oldX = pcsPos.get(pos).getX();
-        int oldY = pcsPos.get(pos).getY();
-        Piece piece = board[oldX][oldY].getPiece();
-
-        ArrayList<TilePosition> availPos = availableMoves(oldX, oldY);
-        pos = rand.nextInt(availPos.size());
-        int newX = availPos.get(pos).getX();
-        int newY = availPos.get(pos).getY();
-
-        movePiece(piece, oldX, oldY, newX, newY);
-    }
-
-    private void changeCurrentPlayer() {
-        curPlayer = curPlayer == PieceType.RED ? PieceType.WHITE : PieceType.RED;
+        Platform.exit();
     }
 
     /**
      * Resets the LOA board. The tiles are redrawn with default colors.
      * For each piece, the available tiles for next move are recounted.
      */
-    private void resetBoard() {
+    public void resetBoard(Tile[][] board) {
         for (int i = 0; i < TILES; i++) {
             for (int j = 0; j < TILES; j++) {
                 if ((i + j) % 2 == 0) {
@@ -179,7 +172,7 @@ public class Game extends Application {
 
                 if (board[i][j].hasPiece()) {
                     board[i][j].getPiece().setCurPlayer(curPlayer);
-                    board[i][j].getPiece().setAvailableMoves(availableMoves(i, j));
+                    board[i][j].getPiece().setAvailableMoves(availableMoves(board, i, j));
                 }
             }
         }
@@ -192,7 +185,7 @@ public class Game extends Application {
      * @param y row number of the tile
      * @return an arraylist of the tiles available for next move
      */
-    private ArrayList<TilePosition> availableMoves(int x, int y) {
+    public ArrayList<TilePosition> availableMoves(Tile[][] board, int x, int y) {
         ArrayList<TilePosition> availableTiles = new ArrayList<>();
         PieceType ownType = board[x][y].getPiece().getType();
         PieceType oppType = ownType == PieceType.RED ? PieceType.WHITE : PieceType.RED;
@@ -209,12 +202,12 @@ public class Game extends Application {
             oppFound = false;
             occupied = false;
             for (int i = x + 1; i < x + totalPiece; i++) {
-                if (hasPieceOnXY(i, y, oppType)) {
+                if (hasPieceOnXY(board, i, y, oppType)) {
                     oppFound = true;
                     break;
                 }
             }
-            if (hasPieceOnXY(x + totalPiece, y, ownType))
+            if (hasPieceOnXY(board, x + totalPiece, y, ownType))
                 occupied = true;
             if (!oppFound && !occupied)
                 availableTiles.add(new TilePosition(x + totalPiece, y));
@@ -223,12 +216,12 @@ public class Game extends Application {
             oppFound = false;
             occupied = false;
             for (int i = x - totalPiece + 1; i < x; i++) {
-                if (hasPieceOnXY(i, y, oppType)) {
+                if (hasPieceOnXY(board, i, y, oppType)) {
                     oppFound = true;
                     break;
                 }
             }
-            if (hasPieceOnXY(x - totalPiece, y, ownType))
+            if (hasPieceOnXY(board, x - totalPiece, y, ownType))
                 occupied = true;
             if (!oppFound && !occupied)
                 availableTiles.add(new TilePosition(x - totalPiece, y));
@@ -245,12 +238,12 @@ public class Game extends Application {
             oppFound = false;
             occupied = false;
             for (int j = y + 1; j < y + totalPiece; j++) {
-                if (hasPieceOnXY(x, j, oppType)) {
+                if (hasPieceOnXY(board, x, j, oppType)) {
                     oppFound = true;
                     break;
                 }
             }
-            if (hasPieceOnXY(x, y + totalPiece, ownType))
+            if (hasPieceOnXY(board, x, y + totalPiece, ownType))
                 occupied = true;
             if (!oppFound && !occupied)
                 availableTiles.add(new TilePosition(x, y + totalPiece));
@@ -259,12 +252,12 @@ public class Game extends Application {
             oppFound = false;
             occupied = false;
             for (int j = y - totalPiece + 1; j < y; j++) {
-                if (hasPieceOnXY(x, j, oppType)) {
+                if (hasPieceOnXY(board, x, j, oppType)) {
                     oppFound = true;
                     break;
                 }
             }
-            if (hasPieceOnXY(x, y - totalPiece, ownType))
+            if (hasPieceOnXY(board, x, y - totalPiece, ownType))
                 occupied = true;
             if (!oppFound && !occupied)
                 availableTiles.add(new TilePosition(x, y - totalPiece));
@@ -285,12 +278,12 @@ public class Game extends Application {
             oppFound = false;
             occupied = false;
             for (int i = x - totalPiece + 1, j = y - totalPiece + 1; i < x && j < y; i++, j++) {
-                if (hasPieceOnXY(i, j, oppType)) {
+                if (hasPieceOnXY(board, i, j, oppType)) {
                     oppFound = true;
                     break;
                 }
             }
-            if (hasPieceOnXY(x - totalPiece, y - totalPiece, ownType))
+            if (hasPieceOnXY(board, x - totalPiece, y - totalPiece, ownType))
                 occupied = true;
             if (!oppFound && !occupied)
                 availableTiles.add(new TilePosition(x - totalPiece, y - totalPiece));
@@ -299,12 +292,12 @@ public class Game extends Application {
             oppFound = false;
             occupied = false;
             for (int i = x + 1, j = y + 1; i < x + totalPiece && j < y + totalPiece; i++, j++) {
-                if (hasPieceOnXY(i, j, oppType)) {
+                if (hasPieceOnXY(board, i, j, oppType)) {
                     oppFound = true;
                     break;
                 }
             }
-            if (hasPieceOnXY(x + totalPiece, y + totalPiece, ownType))
+            if (hasPieceOnXY(board, x + totalPiece, y + totalPiece, ownType))
                 occupied = true;
             if (!oppFound && !occupied)
                 availableTiles.add(new TilePosition(x + totalPiece, y + totalPiece));
@@ -325,12 +318,12 @@ public class Game extends Application {
             oppFound = false;
             occupied = false;
             for (int i = x - totalPiece + 1, j = y + totalPiece - 1; i < x && j > y; i++, j--) {
-                if (hasPieceOnXY(i, j, oppType)) {
+                if (hasPieceOnXY(board, i, j, oppType)) {
                     oppFound = true;
                     break;
                 }
             }
-            if (hasPieceOnXY(x - totalPiece, y + totalPiece, ownType))
+            if (hasPieceOnXY(board, x - totalPiece, y + totalPiece, ownType))
                 occupied = true;
             if (!oppFound && !occupied)
                 availableTiles.add(new TilePosition(x - totalPiece, y + totalPiece));
@@ -339,12 +332,12 @@ public class Game extends Application {
             oppFound = false;
             occupied = false;
             for (int i = x + 1, j = y - 1; i < x + totalPiece && j > y - totalPiece; i++, j--) {
-                if (hasPieceOnXY(i, j, oppType)) {
+                if (hasPieceOnXY(board, i, j, oppType)) {
                     oppFound = true;
                     break;
                 }
             }
-            if (hasPieceOnXY(x + totalPiece, y - totalPiece, ownType))
+            if (hasPieceOnXY(board, x + totalPiece, y - totalPiece, ownType))
                 occupied = true;
             if (!oppFound && !occupied)
                 availableTiles.add(new TilePosition(x + totalPiece, y - totalPiece));
@@ -361,17 +354,49 @@ public class Game extends Application {
      * @param side the side
      * @return true if the pieces of `side` are contiguous
      */
-    private boolean hasWon(PieceType side) {
-        int nrPcs = 0;
-        int ctPcs = 0;
+    private boolean hasWon(Tile[][] board, PieceType side) {
+        int nrPcs = totalPcs(board, side);
+        int ctPcs = contPcs(board, side);
 
-        boolean[][] visited = new boolean[TILES][TILES];
+        if (ctPcs == -1) {
+            return false;
+        }
+
+        return nrPcs == ctPcs;
+    }
+
+    private boolean gameOver(Tile[][] board) {
+        return hasWon(board, PieceType.WHITE) || hasWon(board, PieceType.RED);
+    }
+
+    public PieceType getWinner(Tile[][] board) {
+        if (hasWon(board, PieceType.RED) && hasWon(board, PieceType.WHITE))
+            return PieceType.NONE;
+        if (hasWon(board, PieceType.RED))
+            return PieceType.RED;
+        if (hasWon(board, PieceType.WHITE))
+            return PieceType.WHITE;
+
+        return null;
+    }
+
+    private int totalPcs(Tile[][] board, PieceType side) {
+        int count = 0;
+        for (int i = 0; i < TILES; i++) {
+            for (int j = 0; j < TILES; j++) {
+                if (hasPieceOnXY(board, i, j, side))
+                    count++;
+            }
+        }
+
+        return count;
+    }
+
+    private int contPcs(Tile[][] board, PieceType side) {
         TilePosition firstSpot = null;
         for (int i = 0; i < TILES; i++) {
             for (int j = 0; j < TILES; j++) {
-                visited[i][j] = false;
-                if (board[i][j].hasPiece() && board[i][j].getPiece().getType() == side) {
-                    nrPcs++;
+                if (hasPieceOnXY(board, i, j, side)) {
                     if (firstSpot == null)
                         firstSpot = board[i][j].getPosition();
                 }
@@ -379,14 +404,21 @@ public class Game extends Application {
         }
 
         if (firstSpot == null) {
-            System.out.println("FUCK!");
-            return false;
+//            System.out.println("FUCK!");
+            return -1;
         }
+
+        return ctgPcsAt(board, side, firstSpot);
+    }
+
+    int ctgPcsAt(Tile[][] board, PieceType side, TilePosition firstSpot) {
+        int count = 0;
+        boolean[][] visited = new boolean[TILES][TILES];
 
         LinkedList<TilePosition> queue = new LinkedList<>();
         queue.add(firstSpot);
         visited[firstSpot.getX()][firstSpot.getY()] = true;
-        ctPcs++;
+        count++;
 
         while (!queue.isEmpty()) {
             TilePosition pos = queue.remove();
@@ -404,15 +436,16 @@ public class Game extends Application {
                         if (p != null && p.getType() == side) {
                             queue.add(board[intI[m]][intJ[n]].getPosition());
                             visited[intI[m]][intJ[n]] = true;
-                            ctPcs++;
+                            count++;
                         }
                     }
                 }
             }
         }
 
-        return ctPcs == nrPcs;
+        return count;
     }
+
 
     /**
      * Checks if the specified tile is inside the board.
@@ -433,21 +466,10 @@ public class Game extends Application {
      * @param type type of the piece (RED or WHITE)
      * @return true if the piece at col x and row y is of `type`
      */
-    private boolean hasPieceOnXY(int x, int y, PieceType type) {
+    public boolean hasPieceOnXY(Tile[][] board, int x, int y, PieceType type) {
         if (!isWithinBoard(x, y)) return false;
         if (!board[x][y].hasPiece()) return false;
         return board[x][y].getPiece().getType() == type;
     }
-
-    @Override
-    public void start(Stage primaryStage) {
-        Scene scene = new Scene(createContent());
-        primaryStage.setTitle("Lines of Action");
-        primaryStage.setScene(scene);
-        primaryStage.show();
-    }
-    public static void main(String[] args) {
-        launch(args);
-    }
-
 }
+

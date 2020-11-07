@@ -1,3 +1,7 @@
+package loa;
+
+import java.util.Objects;
+
 public class TilePosition {
     private int x, y;
 
@@ -34,6 +38,6 @@ public class TilePosition {
 
     @Override
     public int hashCode() {
-        return this.x + this.y;
+        return Objects.hash(x, y);
     }
 }

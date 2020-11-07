@@ -1,3 +1,5 @@
+package loa;
+
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
@@ -38,9 +40,8 @@ public class Piece extends StackPane {
         this.availableMoves = availableMoves;
     }
 
-    public Piece(PieceType type, int x, int y, Tile[][] board, PieceType curPlayer) {
+    public Piece(PieceType type, int x, int y, Tile[][] board) {
         this.type = type;
-        this.curPlayer = curPlayer;
         this.board = board;
 
         move(x, y);
