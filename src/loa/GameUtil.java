@@ -12,6 +12,17 @@ import static loa.Game.TILES;
 import static loa.Game.TILE_SIZE;
 
 public class GameUtil {
+    public static final int[][] pieceSquareTable = {
+            { -80, -25, -20, -20, -20, -20, -25, -80 },
+            { -25,  10,  10,  10,  10,  10,  10, -25 },
+            { -20,  10,  25,  25,  25,  25,  10, -20 },
+            { -20,  10,  25,  50,  50,  25,  10, -20 },
+            { -20,  10,  25,  50,  50,  25,  10, -20 },
+            { -20,  10,  25,  25,  25,  25,  10, -20 },
+            { -25,  10,  10,  10,  10,  10,  10, -25 },
+            { -80, -25, -20, -20, -20, -20, -25, -80 }
+    };
+
     public Group tileGroup = new Group();
     public Group pieceGroup = new Group();
 
