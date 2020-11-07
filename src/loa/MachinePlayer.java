@@ -74,16 +74,30 @@ public class MachinePlayer extends Player {
                 Piece piece = dummyBoard[i][j].getPiece();
                 piece.setAvailableMoves(util.availableMoves(dummyBoard, i, j));
                 ArrayList<TilePosition> availableMoves = piece.getAvailableMoves();
+
+                /*
+                 * Move piece to all available positions,
+                 * calculate the scores for each move,
+                 * and make the move with the best score.
+                 */
                 for (TilePosition pos : availableMoves) {
-//                    util.movePiece(dummyBoard, piece, i, j, pos.getX(), pos.getY());
+                    // Store the piece that might get killed in the move
                     Piece otherPiece = dummyBoard[pos.getX()][pos.getY()].getPiece();
+
+                    // Move piece to a valid tile
                     dummyBoard[i][j].setPiece(null);
                     dummyBoard[pos.getX()][pos.getY()].setPiece(piece);
-                    score = minimax(dummyBoard, 2, Integer.MIN_VALUE, Integer.MAX_VALUE, false);
-//                    System.out.println("6 HEY!! : " + score + " " + bestScore);
-//                    util.movePiece(dummyBoard, piece, pos.getX(), pos.getY(), i, j);
+
+                    // Calculate the score of the new game state
+                    score = minimax(dummyBoard, 3, Integer.MIN_VALUE, Integer.MAX_VALUE, false);
+
+                    // Move piece to its previous tile
                     dummyBoard[i][j].setPiece(piece);
+                    dummyBoard[pos.getX()][pos.getY()].setPiece(null);
+
+                    // Restore the piece that might have gotten killed in the move
                     dummyBoard[pos.getX()][pos.getY()].setPiece(otherPiece);
+
                     if (score > bestScore) {
                         bestScore = score;
                         oldX = i;
@@ -95,23 +109,14 @@ public class MachinePlayer extends Player {
             }
         }
 
-        if (oldX == -1)
-            System.out.println("1 HEY!");
-        if (oldY == -1)
-            System.out.println("2 HEY!");
-        if (newX == -1)
-            System.out.println("3 HEY!");
-        if (newY == -1)
-            System.out.println("4 HEY!");
-        System.out.println("5 HEY! : " + bestScore);
-
         setMoveFrom(new TilePosition(oldX, oldY));
         setMoveTo(new TilePosition(newX, newY));
 
         return util.movePiece(board, board[oldX][oldY].getPiece(), oldX, oldY, newX, newY);
     }
 
-    private int minimax(Tile[][] board, int depth, int alpha, int beta, boolean isMaximizing) {
+    private int minimax(Tile[][] board, int depth,
+                        int alpha, int beta, boolean isMaximizing) {
         int score = 0;
         int bestScore = 0;
         PieceType winner = util.getWinner(board);
@@ -135,46 +140,82 @@ public class MachinePlayer extends Player {
         if (isMaximizing) {
             bestScore = Integer.MIN_VALUE;
             boolean breakFlag = false;
+
             for (int i = 0;  i < TILES && !breakFlag; i++) {
                 for (int j = 0; j < TILES && !breakFlag; j++) {
                     if (!util.hasPieceOnXY(board, i, j, PieceType.WHITE)) continue;
                     Piece piece = board[i][j].getPiece();
                     piece.setAvailableMoves(util.availableMoves(board, i, j));
                     ArrayList<TilePosition> availableMoves = piece.getAvailableMoves();
+
+                    /*
+                     * Move piece to all available positions, calculate
+                     * the scores for each move, and store the best score.
+                     */
                     for (TilePosition pos : availableMoves) {
+                        // Store the piece that might get killed in the move
                         Piece otherPiece = board[pos.getX()][pos.getY()].getPiece();
+
+                        // Move piece to a valid tile
                         board[i][j].setPiece(null);
                         board[pos.getX()][pos.getY()].setPiece(piece);
+
+                        // Calculate the score of the new game state
                         score = minimax(board, depth - 1, alpha, beta, false);
+
+                        // Move piece to its previous tile
                         board[i][j].setPiece(piece);
+                        board[pos.getX()][pos.getY()].setPiece(null);
+
+                        // Restore the piece that might have gotten killed in the move
                         board[pos.getX()][pos.getY()].setPiece(otherPiece);
+
                         if (score > bestScore) bestScore = score;
                         if (score > alpha) alpha = score;
                         if (beta <= alpha) breakFlag = true;
                     }
+
                 }
             }
         }
         else {
             bestScore = Integer.MAX_VALUE;
             boolean breakFlag = false;
+
             for (int i = 0;  i < TILES && !breakFlag; i++) {
                 for (int j = 0; j < TILES && !breakFlag; j++) {
                     if (!util.hasPieceOnXY(board, i, j, PieceType.RED)) continue;
                     Piece piece = board[i][j].getPiece();
                     piece.setAvailableMoves(util.availableMoves(board, i, j));
                     ArrayList<TilePosition> availableMoves = piece.getAvailableMoves();
+
+                    /*
+                     * Move piece to all available positions, calculate
+                     * the scores for each move, and store the best score.
+                     */
                     for (TilePosition pos : availableMoves) {
+                        // Store the piece that might get killed in the move
                         Piece otherPiece = board[pos.getX()][pos.getY()].getPiece();
+
+                        // Move piece to a valid tile
                         board[i][j].setPiece(null);
                         board[pos.getX()][pos.getY()].setPiece(piece);
+
+                        // Calculate the score of the new game state
                         score = minimax(board, depth - 1, alpha, beta, true);
+
+                        // Move piece to its previous tile
                         board[i][j].setPiece(piece);
+                        board[pos.getX()][pos.getY()].setPiece(null);
+
+                        // Restore the piece that might have gotten killed in the move
                         board[pos.getX()][pos.getY()].setPiece(otherPiece);
+
                         if (score < bestScore) bestScore = score;
                         if (score < alpha) alpha = score;
                         if (beta <= alpha) breakFlag = true;
                     }
+
                 }
             }
         }
@@ -182,6 +223,13 @@ public class MachinePlayer extends Player {
         return bestScore;
     }
 
+    /**
+     * Returns a heuristic score of the game state.
+     *
+     * @param board the game board
+     * @param side the side for which the score is to be calculated
+     * @return the heuristic score of the game state
+     */
     public int getScore(Tile[][] board, PieceType side) {
         int weightOfWeight        =  1;
         int weightOfDensity       = -1;
