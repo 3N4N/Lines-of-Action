@@ -112,6 +112,10 @@ public class MachinePlayer extends Player {
         setMoveFrom(new TilePosition(oldX, oldY));
         setMoveTo(new TilePosition(newX, newY));
 
+        if (oldX == -1) {
+            return null;
+        }
+
         return util.movePiece(board, board[oldX][oldY].getPiece(), oldX, oldY, newX, newY);
     }
 

@@ -113,10 +113,14 @@ public class GameUtil {
             int oldY = toBoard(piece.getOldY());
             player1.setMoveFrom(new TilePosition(oldX, oldY));
             player1.setMoveTo(new TilePosition(newX, newY));
-            MoveResult result = player1.makeMove(board);
-            if (result.getType() != MoveType.NONE
+            MoveResult result1 = player1.makeMove(board);
+            if (result1.getType() != MoveType.NONE
                     && player2 instanceof MachinePlayer) {
-                player2.makeMove(board);
+                MoveResult result2 = player2.makeMove(board);
+                if (result2 == null) {
+                    System.out.println("MSG: Machine has no possible move.");
+                    Platform.exit();
+                }
             }
         });
 
